@@ -6,6 +6,57 @@ solidity-parser-antlr
 
 A Solidity parser built on top of a robust [ANTLR4 grammar](https://github.com/solidityj/solidity-antlr4).
 
+**Extended** by Peng Gao (<gaopeng32@gmail.com>) to add support for tree `depth` and `id` of AST nodes. 
+
+### Extended Usage
+
+Example of an AST node: `depth` denotes the tree depth, `id` denotes the order of visiting
+
+```json
+{ type: 'SourceUnit',
+  children:
+   [ { type: 'ContractDefinition',
+       name: 'test',
+       baseContracts: [],
+       subNodes: [Array],
+       kind: 'contract',
+       loc: [Object],
+       range: [Array],
+       depth: 1,
+       id: 1 } ],
+  loc:
+   { start: { line: 1, column: 0 }, end: { line: 1, column: 31 } },
+  range: [ 0, 31 ],
+  depth: 0,
+  id: 0 
+}
+```
+
+Example usage
+
+```js
+// Parse Solidity source
+const parser = require('./solidity-parser-antlr/src/index')
+var source = "contract test { uint a; uint b;}"
+var ast = parser.parse(source, {loc: true, range: true}) // original ast
+parser.setDepthAndID(ast, true, true) // add the depth and id to the ast
+
+// Visit AST
+parser.visit(ast, {
+  PrevAll: (node) => {
+    // Triggered before all types of node are visited
+    console.log("prevall: " + node.type)
+  },
+
+  PostAll: (node) => {
+    // Triggered after all types of node are visited
+    console.log("postall: " + node.type)
+  }
+})
+```
+
+---
+
 ### Usage
 
 ```javascript

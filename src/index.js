@@ -90,8 +90,16 @@ function visit(node, visitor) {
 
   let cont = true
 
+  if (visitor['PrevAll']) {
+    cont = visitor['PrevAll'](node)
+  }
+
   if (visitor[node.type]) {
     cont = visitor[node.type](node)
+  }
+
+  if (visitor['PostAll']) {
+    cont = visitor['PostAll'](node)
   }
 
   if (cont === false) return
@@ -108,7 +116,75 @@ function visit(node, visitor) {
   }
 }
 
+function setDepthAndID(node, depthf=false, idf=false) {
+  // Set the depth and id of nodes by visiting the AST
+  let id = 0
+  let subVisit = (node, depth) => {
+    if (Array.isArray(node)) {
+      node.forEach(child => subVisit(child, depth))
+    }
+
+    if (!_isASTNode(node)) return
+
+    if (depthf) node.depth = depth
+
+    if (idf) {
+      node.id = id
+      id += 1
+    }  
+
+    for (const prop in node) {
+      if (node.hasOwnProperty(prop)) {
+        subVisit(node[prop], depth + 1)
+      }
+    }
+  }
+
+  subVisit(node, 0);
+}
+
+function graph(node) {
+  if (!_isASTNode(node)) {
+    return null
+  }
+  if (! node['name']) {
+    if (node['memberName']) node['name'] = node['memberName']
+    else node['name'] = node['type']
+  }
+  if (node['name'] != node['type'])
+    node['name'] = node['type'] +"--"+ node['name']
+  if (node['loc']['start']['line'])
+      node['name'] = node['name'] +"--"+ node['loc']['start']['line']
+
+  for (var key in node) {
+    if (Array.isArray(node[key])) {
+      let tmp = node[key]
+      delete node[key]
+      if (!node['children']) node['children'] = []
+      for (var i in tmp) {
+        let ret = graph(tmp[i])
+        if (ret != null) node['children'].push(ret)
+      }
+    }
+  }
+
+  if (!node['children']) node['children'] = []
+  for (var key in node) {
+    let ret = graph(node[key])
+    if (ret != null) {
+      node['children'].push(ret)
+    }
+  }
+
+  if (node['children'] && node['children'].length == 0) {
+    delete node['children']
+  }
+  return node
+}
+
 exports.tokenize = tokenize
 exports.parse = parse
 exports.visit = visit
 exports.ParserError = ParserError
+exports.checkNode = _isASTNode
+exports.setDepthAndID = setDepthAndID
