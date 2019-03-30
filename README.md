@@ -51,6 +51,10 @@ parser.visit(ast, {
   PostAll: (node) => {
     // Triggered after all types of node are visited
     console.log("postall: " + node.type)
+  },
+   
+  ImportDirective: function(node) {
+    console.log(node.path) // triggered only for ImportDirective node type
   }
 })
 ```
