@@ -178,13 +178,13 @@ const transformAST = {
 
     return {
       name,
-      parameters,
-      returnParameters,
-      body: block,
-      visibility,
-      modifiers,
       isConstructor: name === this._currentContract,
-      stateMutability
+      parameters,
+      visibility,
+      stateMutability,
+      modifiers,
+      returnParameters,
+      body: block
     }
   },
 
